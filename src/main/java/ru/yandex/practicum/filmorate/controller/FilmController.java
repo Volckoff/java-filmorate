@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class FilmController {
     @GetMapping
     public Collection<Film> getAllUsers() {
         log.info("Запрос на получение всех пользователей");
-        return films.values();
+        return new ArrayList<>(films.values());
     }
 
 
@@ -29,10 +30,6 @@ public class FilmController {
     public Film createFilm(@Valid @RequestBody Film film) {
         log.info("Попытка создания фильма: {}", film);
         film.setId(getNextId());
-        if (film.getId() != null && films.containsKey(film.getId())) {
-            log.warn("Ошибка создания фильма: фильм с ID {} уже существует", film.getId());
-            throw new ValidationException("Фильм с таким ID уже существует");
-        }
         films.put(film.getId(), film);
         log.info("Фильм успешно создан: {}", film);
         return film;
@@ -49,11 +46,12 @@ public class FilmController {
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
         log.info("Попытка обновления фильма: {}", film);
-        if (!films.containsKey(film.getId())) {
-            log.warn("Ошибка обновления фильма: фильм с ID {} не найден", film.getId());
+        Integer id = film.getId();
+        if (!films.containsKey(id)) {
+            log.warn("Ошибка обновления фильма: фильм с ID {} не найден", id);
             throw new ValidationException("Фильм с таким ID не найден");
         }
-        films.put(film.getId(), film);
+        films.put(id, film);
         log.info("Фильм успешно обновлен: {}", film);
         return film;
     }
