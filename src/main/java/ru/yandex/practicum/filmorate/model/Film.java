@@ -16,13 +16,13 @@ public class Film {
     @NotNull(groups = Update.class, message = "ID не может быть null")
     private Integer id;
 
-    @NotBlank(groups = {Update.class, Create.class}, message = "Название фильма не может быть пустым")
+    @NotBlank(groups = Create.class, message = "Название фильма не может быть пустым")
     private String name;
 
     @Size(groups = {Update.class, Create.class}, max = 200, message = "Описание не может превышать 200 символов")
     private String description;
 
-    @NotNull(groups = {Update.class, Create.class}, message = "Дата релиза обязательна")
+    @NotNull(groups = Create.class, message = "Дата релиза обязательна")
     @PastOrPresent(groups = {Update.class, Create.class}, message = "Дата релиза не может быть в будущем")
     private LocalDate releaseDate;
 
