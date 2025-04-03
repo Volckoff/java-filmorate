@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.validation.Create;
+import ru.yandex.practicum.filmorate.validation.Update;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +29,7 @@ public class FilmController {
 
 
     @PostMapping
-    public Film createFilm(@Valid @RequestBody Film film) {
+    public Film createFilm(@Validated(Create.class) @RequestBody Film film) {
         log.info("Попытка создания фильма: {}", film);
         film.setId(getNextId());
         films.put(film.getId(), film);
@@ -44,16 +46,32 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film) {
-        log.info("Попытка обновления фильма: {}", film);
-        Integer id = film.getId();
-        if (!films.containsKey(id)) {
+    public Film updateFilm(@Validated(Update.class) @RequestBody Film updatedFilm) {
+        log.info("Попытка обновления фильма: {}", updatedFilm);
+
+        Integer id = updatedFilm.getId();
+        if (id == null || !films.containsKey(id)) {
             log.warn("Ошибка обновления фильма: фильм с ID {} не найден", id);
             throw new ValidationException("Фильм с таким ID не найден");
         }
-        films.put(id, film);
-        log.info("Фильм успешно обновлен: {}", film);
-        return film;
+
+        Film existingFilm = films.get(id);
+        if (updatedFilm.getName() != null) {
+            existingFilm.setName(updatedFilm.getName());
+        }
+        if (updatedFilm.getDescription() != null) {
+            existingFilm.setDescription(updatedFilm.getDescription());
+        }
+        if (updatedFilm.getReleaseDate() != null) {
+            existingFilm.setReleaseDate(updatedFilm.getReleaseDate());
+        }
+        if (updatedFilm.getDuration() > 0) {
+            existingFilm.setDuration(updatedFilm.getDuration());
+        }
+
+        films.put(id, existingFilm);
+        log.info("Фильм успешно обновлен: {}", existingFilm);
+        return existingFilm;
     }
 
 }

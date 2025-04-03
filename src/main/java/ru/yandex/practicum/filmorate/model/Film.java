@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.validation.Create;
+import ru.yandex.practicum.filmorate.validation.Update;
 
 import java.time.LocalDate;
 
@@ -11,20 +13,21 @@ import java.time.LocalDate;
 @Slf4j
 public class Film {
 
-    @NotNull(message = "ID не может быть null")
+    @NotNull(groups = Update.class, message = "ID не может быть null")
     private Integer id;
 
-    @NotBlank(message = "Название фильма не может быть пустым")
+    @NotBlank(groups = {Update.class, Create.class}, message = "Название фильма не может быть пустым")
     private String name;
 
-    @Size(max = 200, message = "Описание не может превышать 200 символов")
+    @Size(groups = {Update.class, Create.class}, max = 200, message = "Описание не может превышать 200 символов")
     private String description;
 
-    @NotNull(message = "Дата релиза обязательна")
-    @PastOrPresent(message = "Дата релиза не может быть в будущем")
+    @NotNull(groups = {Update.class, Create.class}, message = "Дата релиза обязательна")
+    @PastOrPresent(groups = {Update.class, Create.class}, message = "Дата релиза не может быть в будущем")
     private LocalDate releaseDate;
 
-    @Positive(message = "Продолжительность фильма должна быть положительным числом")
+    @Positive(groups = {Update.class, Create.class}, message = "Продолжительность фильма должна быть " +
+            "положительным числом")
     private int duration;
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration) {

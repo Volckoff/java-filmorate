@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.validation.Create;
+import ru.yandex.practicum.filmorate.validation.Update;
 
 import java.time.LocalDate;
 
@@ -11,21 +13,21 @@ import java.time.LocalDate;
 @Slf4j
 public class User {
 
-    @NotNull(message = "ID не может быть null")
+    @NotNull(groups = Update.class, message = "ID не может быть null")
     private Integer id;
 
-    @Email(message = "Электронная почта должна быть корректной")
-    @NotBlank(message = "Электронная почта не может быть пустой")
+    @Email(groups = {Update.class, Create.class},message = "Электронная почта должна быть корректной")
+    @NotBlank(groups = {Update.class, Create.class},message = "Электронная почта не может быть пустой")
     private String email;
 
-    @NotBlank(message = "Логин не может быть пустым")
-    @Pattern(regexp = "\\S+", message = "Логин не должен содержать пробелы")
+    @NotBlank(groups = {Update.class, Create.class},message = "Логин не может быть пустым")
+    @Pattern(groups = {Update.class, Create.class}, regexp = "\\S+", message = "Логин не должен содержать пробелы")
     private String login;
 
     private String name;
 
-    @PastOrPresent(message = "Дата рождения не может быть в будущем")
-    @NotNull(message = "Дата рождения обязательна")
+    @PastOrPresent(groups = {Update.class, Create.class}, message = "Дата рождения не может быть в будущем")
+    @NotNull(groups = {Update.class, Create.class}, message = "Дата рождения обязательна")
     private LocalDate birthday;
 
     public User(int id, String email, String login, String name, LocalDate birthday) {
