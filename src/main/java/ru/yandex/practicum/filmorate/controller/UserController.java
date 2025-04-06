@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validation.Create;
 import ru.yandex.practicum.filmorate.validation.Update;
@@ -49,7 +49,7 @@ public class UserController {
         User existingUser = users.get(updatedUser.getId());
         if (existingUser == null) {
             log.warn("Ошибка обновления пользователя: пользователь с ID {} не найден", updatedUser.getId());
-            throw new ValidationException("Пользователь с таким ID не найден");
+            throw new NotFoundException("Пользователь с таким ID не найден");
         }
         if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()) {
             existingUser.setEmail(updatedUser.getEmail());

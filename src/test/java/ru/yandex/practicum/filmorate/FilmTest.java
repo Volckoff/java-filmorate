@@ -65,7 +65,7 @@ public class FilmTest {
     }
 
     @Test
-    void releaseDateSpecificDateTest() {
+    void testReleaseDateBefore() {
         Film film = new Film(1, "Name", "Description",
                 LocalDate.of(1895, 12, 27), 20);
         Film film2 = new Film(2, "Name", "Description",
@@ -83,7 +83,7 @@ public class FilmTest {
     }
 
     @Test
-    void durationTest() {
+    void testDurationIsNegative() {
         Film film = new Film(1, "Name", "Description",
                 LocalDate.of(1896, 12, 27), -1);
         Film film2 = new Film(2, "Name", "Description",
