@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.Create;
 import ru.yandex.practicum.filmorate.validation.Update;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,11 +62,10 @@ public class FilmController {
         if (updatedFilm.getDescription() != null) {
             existingFilm.setDescription(updatedFilm.getDescription());
         }
-        if (updatedFilm.getReleaseDate() != null
-                && updatedFilm.getReleaseDate().isAfter(LocalDate.of(1895, 12, 28))) {
+        if (updatedFilm.getReleaseDate() != null) {
             existingFilm.setReleaseDate(updatedFilm.getReleaseDate());
         }
-        if (updatedFilm.getDuration() > 0) {
+        if (updatedFilm.getDuration() != null) {
             existingFilm.setDuration(updatedFilm.getDuration());
         }
 
