@@ -7,6 +7,8 @@ import ru.yandex.practicum.filmorate.validation.Create;
 import ru.yandex.practicum.filmorate.validation.Update;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Slf4j
@@ -28,6 +30,8 @@ public class User {
     @PastOrPresent(groups = {Update.class, Create.class}, message = "Дата рождения не может быть в будущем")
     @NotNull(groups = Create.class, message = "Дата рождения обязательна")
     private LocalDate birthday;
+
+    private final Set<Integer> friends = new HashSet<>();
 
     public User(int id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
