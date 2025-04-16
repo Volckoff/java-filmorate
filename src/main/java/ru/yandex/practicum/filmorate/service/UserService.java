@@ -52,8 +52,9 @@ public class UserService {
     }
 
 
-    public Optional<User> getById(int id) {
-        return userStorage.getById(id);
+    public User getById(int id) {
+        return userStorage.getById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден."));
     }
 
 
