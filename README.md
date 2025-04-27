@@ -59,7 +59,8 @@ Template repository for Filmorate project.
 - `user_id`: Идентификатор пользователя.
 - `film_id`: Идентификатор фильма.
 
-## Примеры SQL-Запросов
+
+## Примеры SQL-Запросов:
 
 ### Получение топ N популярных фильмов:
  ```sql
@@ -69,13 +70,16 @@ LEFT JOIN Like l ON f.film_id = l.film_id
 GROUP BY f.film_id, f.name
 ORDER BY like_count DESC
 LIMIT N;
+```
 
-### Получение списка друзей пользователя
+
+### Получение списка друзей пользователя:
  ```sql
 SELECT u.*
 FROM User u
 JOIN Friendship f ON u.user_id = f.friend_id
 WHERE f.user_id = :user_id AND f.status = 'confirmed';
+```
 
 ### Получение списка общих друзей с другим пользователем:
  ```sql
@@ -85,17 +89,19 @@ JOIN Friendship f1 ON u.user_id = f1.friend_id
 JOIN Friendship f2 ON u.user_id = f2.friend_id
 WHERE f1.user_id = :user_id_1 AND f2.user_id = :user_id_2
   AND f1.status = 'confirmed' AND f2.status = 'confirmed';
+```
 
-### Получение всех фильмов с их жанрами
+### Получение всех фильмов с их жанрами:
  ```sql
 SELECT f.film_id, f.name, g.name AS genre_name
 FROM Film f
 JOIN Film_Genre fg ON f.film_id = fg.film_id
 JOIN Genre g ON fg.genre_id = g.genre_id;
+```
 
-### Проверка рейтинга MPA для фильма
+### Проверка рейтинга MPA для фильма:
  ```sql
 SELECT f.film_id, f.name, m.name AS mpa_rating
 FROM Film f
 JOIN MPA_Rating m ON f.mpa_id = m.mpa_id;
-
+```
