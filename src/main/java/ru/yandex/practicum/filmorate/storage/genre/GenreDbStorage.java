@@ -5,12 +5,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.GenreRowMapper;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 public class GenreDbStorage {
@@ -22,6 +20,9 @@ public class GenreDbStorage {
             SELECT fg.genre_id FROM film_genre AS fg
             WHERE fg.film_id = ?
             """;
+    private static final String FIND_ALL_GENRE_BE_FILM_ID =
+            "SELECT g.genre_id, g.name FROM genres g JOIN film_genre fg ON g.genre_id = fg.genre_id " +
+                    "WHERE fg.film_id = ? ORDER BY genre_id";
 
 
     public GenreDbStorage(JdbcTemplate jdbc) {
@@ -55,5 +56,10 @@ public class GenreDbStorage {
             genres.add(genre);
         }
         return genres;
+    }
+
+    public Set<Genre> getGenresForFilm(Film film) {
+        List<Genre> genres = jdbc.query(FIND_ALL_GENRE_BE_FILM_ID, new GenreRowMapper(), film.getId());
+        return new TreeSet<>(genres);
     }
 }

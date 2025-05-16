@@ -66,8 +66,8 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId());
         film.setId(generatedId);
         updateMpaName(film);
-        updateGenre(film);
         intoTable(film);
+        film.setGenres(genreDbStorage.getGenresForFilm(film));
         return film;
     }
 
@@ -102,7 +102,7 @@ public class FilmDbStorage implements FilmStorage {
                 throw new NotFoundException("Фильм не найден");
             }
             film.setLikes(getLikesForFilm(id));
-            film.setGenres(updateGenre(film));
+            film.setGenres(genreDbStorage.getGenresForFilm(film));
             updateMpaName(film);
             return Optional.ofNullable(film);
         } catch (EmptyResultDataAccessException ex) {
@@ -116,7 +116,7 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbcTemplate.query(FIND_ALL_FILMS_SQL, rowMapper);
         for (Film film : films) {
             film.setLikes(getLikesForFilm(film.getId()));
-            film.setGenres(updateGenre(film));
+            film.setGenres(genreDbStorage.getGenresForFilm(film));
             updateMpaName(film);
         }
         return films;
@@ -155,24 +155,6 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-
-    private Set<Genre> updateGenre(Film film) {
-        String genreName;
-        Set<Genre> genres;
-        if (film.getGenres().size() > 0) {
-            genres = film.getGenres();
-            for (Genre genre : genres) {
-                if (genre.getId() > 6 || genre.getId() < 1) {
-                    throw new NotFoundException("Не верный id Genre");
-                }
-                genreName = genreDbStorage.getNameForGenreId(genre.getId());
-                genre.setName(genreName);
-            }
-        } else {
-            genres = genreDbStorage.findGenreByFilmId(film.getId());
-        }
-        return genres;
-    }
 
     private Integer insert(String query, boolean expectGeneratedKey, Object... params) {
         if (expectGeneratedKey) {

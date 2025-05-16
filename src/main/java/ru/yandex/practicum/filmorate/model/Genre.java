@@ -5,11 +5,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class Genre {
+@NoArgsConstructor
+public class Genre implements Comparable<Genre> {
 
-    private Integer Id;
+    private Integer id;
     private String name;
 
+    @Override
+    public int compareTo(Genre other) {
+        return this.id.compareTo(other.id);
+    }
 }
