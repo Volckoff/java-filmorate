@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.annotation.DateBefore;
 import ru.yandex.practicum.filmorate.validation.Create;
 import ru.yandex.practicum.filmorate.validation.Update;
@@ -16,35 +14,41 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@NoArgsConstructor
-@Slf4j
 public class Film {
 
-    @NotNull(groups = Update.class, message = "ID не может быть null")
+    @NotNull(groups = Update.class)
     private Integer id;
 
-    @NotBlank(groups = Create.class, message = "Название фильма не может быть пустым")
+    @NotBlank(message = "Название не может быть пустым", groups = Create.class)
     private String name;
 
-    @Size(groups = {Update.class, Create.class}, max = 200, message = "Описание не может превышать 200 символов")
+    @Size(max = 200, message = "Максимальная длина описания — 200 символов", groups = {Create.class, Update.class})
     private String description;
 
-    @NotNull(groups = Create.class, message = "Дата релиза обязательна")
-    @DateBefore(groups = {Update.class, Create.class}, message = "Дата релиза — не раньше 28 декабря 1895 года")
+    @DateBefore(message = "дата релиза — не раньше 28 декабря 1895 года", groups = {Create.class, Update.class})
+    @NotNull(message = "Дата релиза обязательна", groups = Create.class)
     private LocalDate releaseDate;
 
-    @Positive(groups = {Update.class, Create.class}, message = "Продолжительность фильма должна быть " +
-            "положительным числом")
+    @Positive(message = "Продолжительность фильма должна быть положительным числом", groups = {Create.class, Update.class})
     private Integer duration;
 
-    private final Set<Integer> likes = new HashSet<>();
+    private Set<Integer> likes;
 
-    public Film(int id, String name, String description, LocalDate releaseDate, Integer duration) {
+    private Set<Genre> genres = new HashSet<>();
+
+    private Mpa mpa;
+
+    public Film() {
+    }
+
+    public Film(Integer id, String name, String description, LocalDate releaseDate, Integer duration,
+                Set<Genre> genres, Mpa mpa) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-        log.info("Фильм успешно создан: {}", this);
+        this.genres = genres;
+        this.mpa = mpa;
     }
 }
