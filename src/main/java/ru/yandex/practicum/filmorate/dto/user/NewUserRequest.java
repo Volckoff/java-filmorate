@@ -19,6 +19,7 @@ public class NewUserRequest {
     @Pattern(regexp = "\\S+", message = "Логин не должен содержать пробелов")
     String login;
     String name;
-    @PastOrPresent
+    @PastOrPresent(message = "Дата рождения не может быть в будущем")
+    @NotNull
     LocalDate birthday;
 }

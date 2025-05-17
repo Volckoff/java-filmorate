@@ -170,7 +170,7 @@ public class StorageDbTest {
 
     @Test
     public void testFindFilmById() {
-        Optional <Film> film1 = filmDbStorage.getById(1);
+        Optional<Film> film1 = filmDbStorage.getById(1);
         assertThat(film1)
                 .isPresent()
                 .hasValueSatisfying(user ->

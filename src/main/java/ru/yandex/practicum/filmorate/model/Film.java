@@ -36,6 +36,7 @@ public class Film {
 
     private Set<Genre> genres = new HashSet<>();
 
+    @NotNull(message = "MPA рейтинг обязателен")
     private Mpa mpa;
 
     public Film() {
