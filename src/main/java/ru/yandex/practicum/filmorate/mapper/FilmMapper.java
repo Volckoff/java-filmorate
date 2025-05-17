@@ -8,44 +8,52 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Component
 public class FilmMapper {
 
-    public Film mapToFilm(NewFilmRequest request) {
-        if (request.getMpa().getId() > 5 || request.getMpa().getId() < 1) {
+    private static final int GENRE_MIN = 1;
+    private static final int GENRE_MAX = 6;
+    private static final int MPA_MIN = 1;
+    private static final int MPA_MAX = 6;
+
+    public Film toFilm(NewFilmRequest request) {
+        if (request.getMpa().getId() > MPA_MAX || request.getMpa().getId() < MPA_MIN) {
             throw new NotFoundException("Не верный id Mpa");
         }
-        Set<Genre> genres = request.getGenres();
-        for (Genre genre : genres) {
-            if (genre.getId() > 6 || genre.getId() < 1) {
-                throw new NotFoundException("Не верный id Genre");
+        Film film = new Film();
+        film.setName(request.getName());
+        film.setDescription(request.getDescription());
+        film.setReleaseDate(request.getReleaseDate());
+        film.setDuration(request.getDuration());
+        film.setMpa(request.getMpa());
+        if (request.getGenres() != null) {
+            Set<Genre> genres = request.getGenres();
+            for (Genre genre : genres) {
+                if (genre.getId() > GENRE_MAX || genre.getId() < GENRE_MIN) {
+                    throw new NotFoundException("Не верный id Genre");
+                }
             }
+            film.setGenres(new HashSet<>(request.getGenres()));
         }
-        return new Film(
-                null,
-                request.getName(),
-                request.getDescription(),
-                request.getReleaseDate(),
-                request.getDuration(),
-                request.getGenres(),
-                request.getMpa()
-        );
+        return film;
     }
+
 
     public Film updateFromRequest(Film existing, UpdateFilmRequest request) {
         if (request.hasName()) existing.setName(request.getName());
         if (request.hasDescription()) existing.setDescription(request.getDescription());
         if (request.hasReleaseDate()) existing.setReleaseDate(request.getReleaseDate());
         if (request.hasDuration()) existing.setDuration(request.getDuration());
-        if (request.hasMpaId()) existing.setMpa(request.getMpa());
-        if (request.hasGenres()) existing.setGenres(request.getGenres());
+        if (request.hasMpa()) existing.setMpa(request.getMpa());
+        if (request.hasGenres()) existing.setGenres(new HashSet<>(request.getGenres()));
         return existing;
     }
 
 
-    public FilmDto mapToFilmDto(Film film) {
+    public FilmDto toDto(Film film) {
         FilmDto dto = new FilmDto();
         dto.setId(film.getId());
         dto.setName(film.getName());

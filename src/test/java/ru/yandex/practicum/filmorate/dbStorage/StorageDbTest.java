@@ -104,7 +104,6 @@ public class StorageDbTest {
     @Test
     public void testFindUserById() {
         Optional<User> user1 = userDbStorage.getById(1);
-
         assertThat(user1)
                 .isPresent()
                 .hasValueSatisfying(user ->
@@ -234,7 +233,7 @@ public class StorageDbTest {
 
     @Test
     public void testFindAllGenres() {
-        Collection<Genre> allGenres = genreDbStorage.getAllGenre();
+        Collection<Genre> allGenres = genreDbStorage.getAll();
         assertThat(allGenres.size()).isEqualTo(6);
     }
 
@@ -254,7 +253,7 @@ public class StorageDbTest {
 
     @Test
     public void testFilmGenres() {
-        Collection<Genre> filmGenresBeforeAdding = genreDbStorage.getGenresForFilm(film);
+        Collection<Genre> filmGenresBeforeAdding = genreDbStorage.getGenresForFilm(film.getId());
         assertThat(filmGenresBeforeAdding.size()).isEqualTo(2);
     }
 }

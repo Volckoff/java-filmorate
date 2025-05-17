@@ -13,8 +13,8 @@ public class MpaRowMapper implements RowMapper<Mpa> {
     @Override
     public Mpa mapRow(ResultSet rs, int rowNum) throws SQLException {
         Mpa mpa = new Mpa();
-        mpa.setName(rs.getString("name"));
         mpa.setId(rs.getObject("mpa_id", Integer.class));
+        mpa.setName(rs.getString("name"));
         return mpa;
     }
 }

@@ -5,61 +5,53 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.GenreRowMapper;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Repository
 public class GenreDbStorage {
-    protected final JdbcTemplate jdbc;
-    private static final String FIND_ALL_QUERY = "SELECT * FROM genres ORDER BY genre_id";
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE genre_id = ?";
-    private static final String FIND_NAME_BY_ID_QUERY = "SELECT name FROM genres WHERE genre_id = ?";
-    private static final String FIND_ALL_BY_FILM_ID_QUERY = """
-            SELECT fg.genre_id FROM film_genre AS fg
+
+    private final JdbcTemplate jdbcTemplate;
+
+    private static final String FIND_ALL_GENRES = "SELECT * FROM genres ORDER BY genre_id";
+    private static final String FIND_GENRE_BY_ID = "SELECT * FROM genres WHERE genre_id = ?";
+    private static final String FIND_GENRES_FOR_FILM_SQL = """
+            SELECT g.genre_id, g.name FROM genres g
+            JOIN film_genre fg ON g.genre_id = fg.genre_id
             WHERE fg.film_id = ?
+            ORDER BY g.genre_id
             """;
-    private static final String FIND_ALL_GENRE_BE_FILM_ID =
-            "SELECT g.genre_id, g.name FROM genres g JOIN film_genre fg ON g.genre_id = fg.genre_id " +
-                    "WHERE fg.film_id = ? ORDER BY genre_id";
 
-
-    public GenreDbStorage(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    public GenreDbStorage(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
+
+    public Set<Genre> getGenresForFilm(Integer filmId) {
+        return new TreeSet<>(jdbcTemplate.query(FIND_GENRES_FOR_FILM_SQL, new GenreRowMapper(), filmId));
+    }
+
 
     public Genre getGenreById(int id) {
         try {
-            return jdbc.queryForObject(FIND_BY_ID_QUERY, new Object[]{id}, new GenreRowMapper());
-        } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException("Genre c таким id не найден: " + id);
+            return jdbcTemplate.queryForObject(FIND_GENRE_BY_ID,
+                    (rs, rn) -> new Genre(rs.getInt("genre_id"),
+                            rs.getString("name")), id);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new NotFoundException("Жанр с ID " + id + " не найден");
         }
     }
 
 
-    public Collection<Genre> getAllGenre() {
-        return jdbc.query(FIND_ALL_QUERY, new GenreRowMapper());
+    public List<Genre> getAll() {
+        return jdbcTemplate.query(FIND_ALL_GENRES, new GenreRowMapper());
     }
 
-    public String getNameForGenreId(Integer id) {
-        return jdbc.queryForObject(FIND_NAME_BY_ID_QUERY, new Object[]{id}, String.class);
-    }
-
-    public Set<Genre> findGenreByFilmId(Integer filmId) {
-        List<Integer> genresId = jdbc.queryForList(FIND_ALL_BY_FILM_ID_QUERY, new Object[]{filmId}, Integer.class);
-        Set<Genre> genres = new HashSet<>();
-        for (Integer id : genresId) {
-            Genre genre = new Genre();
-            genre.setId(id);
-            genre.setName(getNameForGenreId(id));
-            genres.add(genre);
-        }
-        return genres;
-    }
-
-    public Set<Genre> getGenresForFilm(Film film) {
-        List<Genre> genres = jdbc.query(FIND_ALL_GENRE_BE_FILM_ID, new GenreRowMapper(), film.getId());
-        return new TreeSet<>(genres);
+    public boolean existsById(Integer genreId) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM genres WHERE genre_id = ?", Integer.class, genreId);
+        return count != null && count > 0;
     }
 }

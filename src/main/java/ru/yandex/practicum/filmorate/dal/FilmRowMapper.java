@@ -12,16 +12,15 @@ import java.sql.SQLException;
 public class FilmRowMapper implements RowMapper<Film> {
 
     @Override
-    public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
+    public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
         Film film = new Film();
-        film.setId(resultSet.getInt("film_id"));
-        film.setDescription(resultSet.getString("description"));
-        film.setName(resultSet.getString("name"));
-        film.setDuration(resultSet.getInt("duration"));
-        film.setReleaseDate(resultSet.getDate("release_date").toLocalDate());
+        film.setId(rs.getObject("film_id", Integer.class));
+        film.setName(rs.getString("name"));
+        film.setDescription(rs.getString("description"));
+        film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+        film.setDuration(rs.getObject("duration", Integer.class));
         Mpa mpa = new Mpa();
-        mpa.setId(resultSet.getInt("mpa_id"));
-        mpa.setName(resultSet.getString("name"));
+        mpa.setId(rs.getObject("mpa_id", Integer.class));
         film.setMpa(mpa);
         return film;
     }

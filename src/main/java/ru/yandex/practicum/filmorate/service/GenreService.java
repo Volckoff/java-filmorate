@@ -29,10 +29,9 @@ public class GenreService {
     }
 
     public List<GenreDto> getAllGenre() {
-        return genreDbStorage.getAllGenre()
+        return genreDbStorage.getAll()
                 .stream()
                 .map(genreMapper::mapToGenreDto)
                 .collect(Collectors.toList());
     }
-
 }
