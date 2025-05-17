@@ -31,9 +31,9 @@ public class User {
     @NotNull(groups = Create.class, message = "Дата рождения обязательна")
     private LocalDate birthday;
 
-    private final Set<Integer> friends = new HashSet<>();
+    private Set<Integer> friends = new HashSet<>();
 
-    public User(int id, String email, String login, String name, LocalDate birthday) {
+    public User(Integer id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
         this.email = email;
         this.login = login;
@@ -41,4 +41,8 @@ public class User {
         this.birthday = birthday;
         log.info("Пользователь успешно создан: {}", this);
     }
+
+    public User() {
+    }
+
 }

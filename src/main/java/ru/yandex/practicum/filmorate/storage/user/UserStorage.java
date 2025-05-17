@@ -14,4 +14,5 @@ public interface UserStorage {
     Optional<User> getById(int id);
 
     List<User> getAll();
+
 }
