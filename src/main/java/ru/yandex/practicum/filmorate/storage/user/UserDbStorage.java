@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -13,7 +11,10 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Repository
@@ -26,8 +27,6 @@ public class UserDbStorage implements UserStorage {
     }
 
 
-    private static final String FIND_ALL_USERS_SQL = "SELECT * FROM users";
-    private static final String FIND_BY_ID_SQL = "SELECT * FROM users WHERE user_id = ?";
     private static final String INSERT_USER_SQL = """
             INSERT INTO users(email, login, name, birthday)
             VALUES (?, ?, ?, ?)
@@ -41,6 +40,18 @@ public class UserDbStorage implements UserStorage {
             "SELECT u.* FROM users AS u JOIN friendship AS f ON u.id = f.friend_id WHERE f.user_id = ? " +
                     "JOIN friendship f1 ON u.id = f1.friend_id AND f1.user_id = ? " +
                     "JOIN friendship f2 ON u.id = f2.friend_id AND f2.user_id = ?";
+    private static final String GET_All_USERS = "SELECT u.user_id, u.email, u.login, " +
+            "u.name, u.birthday, f.friend_id " +
+            "FROM users u " +
+            "LEFT JOIN friendship f ON u.user_id = f.user_id";
+    private static final String GET_USER_BY_ID = "SELECT u.user_id, u.email, u.login, " +
+            "u.name, u.birthday, f.friend_id " +
+            "FROM users u " +
+            "LEFT JOIN friendship f ON u.user_id = f.user_id " +
+            "WHERE u.user_id = ?";
+    private static final String GET_FRIENDS_FULL_SQL = """
+            SELECT * FROM users AS u
+            INNER JOIN friendship AS uf ON u.user_id = uf.friend_id WHERE uf.user_id = ?""";
 
 
     @Override
@@ -70,26 +81,20 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> getById(int id) {
-        try {
-            User user = jdbcTemplate.queryForObject(FIND_BY_ID_SQL, new Object[]{id}, new UserRowMapper());
-            if (user == null) {
-                throw new NotFoundException("Пользователь c таким id не найден: " + id);
-            }
-            user.setFriends(getFriendId(user.getId()));
-            return Optional.ofNullable(user);
-        } catch (EmptyResultDataAccessException ex) {
-            throw new NotFoundException("Пользователь с ID " + id + " не найден");
-        }
+        UserRowMapper rowMapper = new UserRowMapper();
+        jdbcTemplate.query(GET_USER_BY_ID, rowMapper::mapRow, id);
+        return Optional.ofNullable(Optional.of(rowMapper.getMappedUsers())
+                .filter(users -> !users.isEmpty())
+                .map(users -> users.get(0))
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден")));
     }
 
 
     @Override
     public List<User> getAll() {
-        List<User> users = jdbcTemplate.query(FIND_ALL_USERS_SQL, new UserRowMapper());
-        for (User user : users) {
-            user.setFriends(getFriendId(user.getId()));
-        }
-        return users;
+        UserRowMapper rowMapper = new UserRowMapper();
+        jdbcTemplate.query(GET_All_USERS, rowMapper::mapRow);
+        return rowMapper.getMappedUsers();
     }
 
 
@@ -102,27 +107,17 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update(REMOVE_FRIEND_SQL, userId, friendId);
     }
 
-    public List<Integer> getFriendsId(int userId) {
-        List<Integer> friendsList = jdbcTemplate.queryForList(GET_FRIENDS_SQL, new Object[]{userId}, Integer.class);
-        return friendsList;
-    }
 
-
-    public List<User> getFriends(int userId) {
-        List<Integer> friendsList = jdbcTemplate.queryForList(GET_FRIENDS_SQL, new Object[]{userId}, Integer.class);
-        List<User> friends = new ArrayList<>();
-        for (Integer id : friendsList) {
-            User user = getById(id).get();
-            friends.add(user);
-        }
-        return friends;
+    public Set<User> getFriends(int userId) {
+        List<User> friends = jdbcTemplate.query(GET_FRIENDS_FULL_SQL, new UserRowMapper(), userId);
+        return new HashSet<>(friends);
     }
 
 
     public List<User> getCommonFriends(int userId, int otherId) {
         return jdbcTemplate.query(
                 GET_COMMON_FRIENDS_SQL,
-                new BeanPropertyRowMapper<>(User.class),
+                new UserRowMapper(),
                 userId, otherId
         );
     }
@@ -137,17 +132,10 @@ public class UserDbStorage implements UserStorage {
             }
             return ps;
         }, keyHolder);
-
         Number generatedId = keyHolder.getKey();
         if (generatedId == null) {
             throw new InternalServerException("Не удалось получить ID после вставки");
         }
         return generatedId.intValue();
-    }
-
-
-    public Set<Integer> getFriendId(int userId) {
-        List<Integer> friendsList = jdbcTemplate.queryForList(GET_FRIENDS_SQL, new Object[]{userId}, Integer.class);
-        return new HashSet<>(friendsList);
     }
 }

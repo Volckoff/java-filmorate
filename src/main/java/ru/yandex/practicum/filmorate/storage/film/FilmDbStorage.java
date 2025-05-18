@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -21,8 +20,6 @@ public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
 
-    private static final String FIND_ALL_FILMS_SQL = "SELECT * FROM films";
-    private static final String FIND_BY_ID_SQL = "SELECT * FROM films WHERE film_id = ?";
     private static final String INSERT_FILM_SQL = """
             INSERT INTO films(name, description, release_date, duration, mpa_id)
             VALUES (?, ?, ?, ?, ?)
@@ -35,17 +32,39 @@ public class FilmDbStorage implements FilmStorage {
     private static final String REMOVE_LIKE_SQL = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     private static final String GET_LIKES_FOR_FILM_SQL = "SELECT user_id FROM likes WHERE film_id = ?";
     private static final String GET_POPULAR_FILMS_SQL = """
-            SELECT f.*, COUNT(l.user_id) AS like_count
+            SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.name AS mpa_name,
+             g.genre_id, g.name AS genre_name
             FROM films f
             LEFT JOIN likes l ON f.film_id = l.film_id
-            GROUP BY f.film_id
-            ORDER BY like_count DESC
+            LEFT JOIN mpa_rating m ON f.mpa_id = m.mpa_id
+            LEFT JOIN film_genre fg ON f.film_id = fg.film_id
+            LEFT JOIN genres g ON fg.genre_id = g.genre_id
+            GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.name, g.genre_id, g.name
+            ORDER BY COUNT(l.user_id) DESC
             LIMIT ?
             """;
     private static final String DELETE_GENRES_FOR_FILM_SQL = "DELETE FROM film_genre WHERE film_id = ?";
     private static final String ADD_GENRE_TO_FILM_SQL = """
             INSERT INTO film_genre(film_id, genre_id)
             VALUES (?, ?)
+            """;
+    private static final String FIND_FILM_WITH_GENRES_SQL = """
+            SELECT f.film_id, f.name AS film_name, f.description,
+                f.release_date, f.duration, f.mpa_id, m.name AS mpa_name,
+                g.genre_id, g.name AS genre_name
+            FROM films f
+            LEFT JOIN film_genre fg ON f.film_id = fg.film_id
+            LEFT JOIN genres g ON fg.genre_id = g.genre_id
+            JOIN mpa_rating m ON f.mpa_id = m.mpa_id
+            WHERE f.film_id = ?
+            """;
+    private static final String GET_ALL_FILMS_SQL = """
+            SELECT f.*, m.name AS mpa_name, g.genre_id, g.name AS genre_name
+            FROM films f
+            LEFT JOIN film_genre fg ON f.film_id = fg.film_id
+            LEFT JOIN genres g ON fg.genre_id = g.genre_id
+            LEFT JOIN mpa_rating m ON f.mpa_id = m.mpa_id
+            ORDER BY f.film_id
             """;
 
 
@@ -98,23 +117,18 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Optional<Film> getById(int id) {
-        try {
-            Film film = jdbcTemplate.queryForObject(FIND_BY_ID_SQL, filmRowMapper, id);
-            film.setLikes(getLikesForFilm(id));
-            return Optional.ofNullable(film);
-        } catch (EmptyResultDataAccessException ex) {
-            return Optional.empty();
-        }
+        Map<Integer, Film> filmMap = new HashMap<>();
+        FilmRowMapper rowMapper = new FilmRowMapper(filmMap);
+        jdbcTemplate.query(FIND_FILM_WITH_GENRES_SQL, rowMapper, id);
+        return Optional.ofNullable(filmMap.get(id));
     }
 
 
-    @Override
     public List<Film> getAll() {
-        List<Film> films = jdbcTemplate.query(FIND_ALL_FILMS_SQL, filmRowMapper);
-        for (Film film : films) {
-            film.setLikes(getLikesForFilm(film.getId()));
-        }
-        return films;
+        Map<Integer, Film> filmMap = new HashMap<>();
+        FilmRowMapper rowMapper = new FilmRowMapper(filmMap);
+        jdbcTemplate.query(GET_ALL_FILMS_SQL, rowMapper);
+        return new ArrayList<>(filmMap.values());
     }
 
 

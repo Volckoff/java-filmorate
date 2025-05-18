@@ -51,7 +51,6 @@ public class FilmService {
         log.info("Попытка получения фильма с id{}", id);
         return filmDbStorage.getById(id)
                 .map(film -> {
-                    film.setMpa(mpaDbStorage.getMpaById(film.getMpa().getId()));
                     film.setGenres(genreDbStorage.getGenresForFilm(film.getId()));
                     return filmMapper.toDto(film);
                 });
@@ -101,6 +100,7 @@ public class FilmService {
 
 
     public FilmDto updateFilm(UpdateFilmRequest request) {
+        log.info("Попытка обновления фильма");
         Film existing = filmDbStorage.getById(request.getId())
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
         Film updated = filmMapper.updateFromRequest(existing, request);

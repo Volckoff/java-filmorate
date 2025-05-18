@@ -11,9 +11,7 @@ import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,6 +29,7 @@ public class UserService {
     }
 
     public UserDto createUser(NewUserRequest request) {
+        log.info("Попытка создания пользователя");
         User user = userMapper.mapToUser(request);
         return userMapper.mapToUserDto(userDbStorage.createUser(user));
     }
@@ -45,12 +44,14 @@ public class UserService {
     }
 
     public List<UserDto> getAll() {
+        log.info("Получение списка всех пользователей");
         return userDbStorage.getAll().stream()
                 .map(userMapper::mapToUserDto)
                 .toList();
     }
 
     public UserDto getById(Integer id) {
+        log.info("Получение пользователя по ID");
         return userDbStorage.getById(id)
                 .map(userMapper::mapToUserDto)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -67,30 +68,29 @@ public class UserService {
 
 
     public void removeFriend(Integer userId, Integer friendId) {
+        log.info("Попытка удаления друга");
         User user = userDbStorage.getById(userId).get();
         User friend = userDbStorage.getById(friendId).get();
         userDbStorage.removeFriend(userId, friendId);
         log.info("Пользователь с ID {} перестал дружить с пользователем с ID {}", userId, friendId);
     }
 
+
     public List<UserDto> getFriends(Integer id) {
-        userDbStorage.getById(id); //проверка что такой юзер существует
-        List<User> friends = userDbStorage.getFriends(id);
+        log.info("Получение списка всех друзей пользователя с ID: {}", id);
+        userDbStorage.getById(id);
+        Set<User> friends = userDbStorage.getFriends(id);
         return friends.stream()
                 .map(userMapper::mapToUserDto)
                 .collect(Collectors.toList());
     }
 
     public List<UserDto> getCommonFriends(Integer userId1, Integer friendId) {
-        log.info("Попытка получения общих друзей у пользователя с ID: {}", userId1);
-        List<Integer> friendsOfUser1 = userDbStorage.getFriendsId(userId1);
-        List<Integer> friendsOfUser2 = userDbStorage.getFriendsId(friendId);
-        Set<Integer> commonFriends = new HashSet<>(friendsOfUser1);
-        commonFriends.retainAll(friendsOfUser2);
-        return commonFriends.stream()
-                .map(userDbStorage::getById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+        log.info("Попытка получения общих друзей у пользoвателя с ID: {}", userId1);
+        Set<User> friendsOfUser1 = userDbStorage.getFriends(userId1);
+        Set<User> friendsOfUser2 = userDbStorage.getFriends(friendId);
+        friendsOfUser2.retainAll(friendsOfUser1);
+        return friendsOfUser2.stream()
                 .map(userMapper::mapToUserDto)
                 .collect(Collectors.toList());
     }

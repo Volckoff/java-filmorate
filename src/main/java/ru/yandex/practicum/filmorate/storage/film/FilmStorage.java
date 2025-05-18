@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FilmStorage {
-    Film createFilm(Film film); // Создание фильма
+    Film createFilm(Film film);
 
-    Film updateFilm(Film film); // Обновление фильма
+    Film updateFilm(Film film);
 
-    Optional<Film> getById(int id); // Поиск фильма по ID
+    Optional<Film> getById(int id);
 
-    List<Film> getAll(); // Получение всех фильмов
+    List<Film> getAll();
 }
