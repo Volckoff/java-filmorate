@@ -22,6 +22,17 @@ public class GlobalExceptionHandler {
         );
     }
 
+
+    @ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<Map<String, String>> handleInternalError(InternalServerException ex) {
+        log.error("Внутренняя ошибка сервера: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>(Map.of(
+                "error", "Internal server error",
+                "message", ex.getMessage()
+        ), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFoundException(NotFoundException ex) {
         log.error("Ресурс не найден: {}", ex.getMessage());
